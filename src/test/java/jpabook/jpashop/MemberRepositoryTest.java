@@ -27,5 +27,13 @@ class MemberRepositoryTest {
 
         //then
         Assertions.assertThat(findMember.getId()).isEqualTo(saveId);
+        Assertions.assertThat(findMember).isEqualTo(member);
+
+        System.out.println("findMember = " + findMember);
+        System.out.println("member = " + member);
+        /*
+        동일 트랜잭션 내에서 같은 ID 값으로 저장,조회를 한다면 영속석 컨텍스트에서 동일한 객체를 참조함.
+        따라서 동일 트랜잭션 내 같은 ID값으로 저장,조회한 각 객체는 같은 엔티티로 취급
+         */
     }
 }
