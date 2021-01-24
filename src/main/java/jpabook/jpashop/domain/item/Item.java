@@ -1,6 +1,7 @@
 package jpabook.jpashop.domain.item;
 
 import jpabook.jpashop.domain.Category;
+import jpabook.jpashop.exception.NotEnoughSotckException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,4 +26,16 @@ public abstract class Item {
     private String name;
     private int price;
     private int stockQuantity;
+
+    public void addStock(int quantity) {
+        this.stockQuantity += quantity;
+    }
+
+    public void removeStock(int quantity) {
+        int tmpQuantity = this.stockQuantity - quantity;
+        if (tmpQuantity < 0){
+            throw new NotEnoughSotckException("재고부족");
+        }
+        this.stockQuantity -= quantity;
+    }
 }
