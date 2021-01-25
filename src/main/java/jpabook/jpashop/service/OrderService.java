@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -21,6 +23,8 @@ public class OrderService {
     /* 주문 */
     @Transactional
     public Long order(Long memberId, Long itemId, int count) {
+
+        // 엔티티 조회
         Member findMember = memberRepository.findOne(memberId);
         Item findItem = itemRepository.findOne(itemId);
 
@@ -36,6 +40,7 @@ public class OrderService {
         Order order = Order.createOrder(findMember,delivery,orderItem);
 
         // 저장
+        // Delivery, OrderItem은 따로 persist명령 없이 Order엔티티의 Cascade옵션으로 같이 persist되도록 함.
         orderRepository.save(order);
 
         return order.getId();
@@ -46,5 +51,10 @@ public class OrderService {
     public void cancelOrder(Long orderId) {
         Order findOrder = orderRepository.findOne(orderId);
         findOrder.cancel();
+    }
+
+    // 검색
+    public List<Order> findOrders(OrderSearch orderSearch) {
+        return orderRepository.findAllByCriteria(orderSearch);
     }
 }
