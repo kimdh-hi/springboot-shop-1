@@ -1,4 +1,5 @@
 package jpabook.jpashop.domain;
+import jpabook.jpashop.domain.model.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,13 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
-public class Member {
-
-    @Id @GeneratedValue
-    @Column(name="member_id")
-    private Long id;
+@Getter @Setter
+public class Member extends BaseEntity {
 
     private String name;
 

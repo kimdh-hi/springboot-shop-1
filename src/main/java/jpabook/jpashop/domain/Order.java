@@ -1,5 +1,6 @@
 package jpabook.jpashop.domain;
 
+import jpabook.jpashop.domain.model.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,11 +16,7 @@ import java.util.List;
 @Table(name="orders") // db의 order by 때문에 orders로
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Order {
-
-    @Id @GeneratedValue
-    @Column(name="order_id")
-    private Long id;
+public class Order extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
