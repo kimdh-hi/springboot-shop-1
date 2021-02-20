@@ -30,7 +30,7 @@ public class OrderRepository {
      * JPA Criteria 동적쿼리
      * 얘도 사용 안함
      */
-    public List<Order> findAllByCriteria(OrderSearch orderSearch) {
+    public List<Order> findAllByString(OrderSearch orderSearch) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Order> cq = cb.createQuery(Order.class);
         Root<Order> o = cq.from(Order.class); // 앨리어싱
