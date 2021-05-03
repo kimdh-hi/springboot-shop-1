@@ -35,7 +35,7 @@ public class OrderSimpleApiController {
      * Hibernate5Mdule로 해결
      * Hibernate5Module 빈 등록 후 postman으로 확인하면 Order와 Delivery에 null이 들어온 것을 확인할 수 있음.
      */
-    @GetMapping("/api/v1/orders")
+    @GetMapping("/api/v1/simple-orders")
     public List<Order> ordersV1() {
         List<Order> orders = orderRepository.findAllByString(new OrderSearch());
         for (Order order : orders) {
@@ -50,7 +50,7 @@ public class OrderSimpleApiController {
      * N+1 (1+N) 문제 발생
      * 2개 Order를 조회시 멤버 N번, 배송 N번 총 5번의 쿼리가 나가게 된다.
      */
-    @GetMapping("/api/v2/orders")
+    @GetMapping("/api/v2/simple-orders")
     public OrderDtoWrapper<List<OrderDto>> ordersV2() {
         List<Order> orders = orderRepository.findAllByString(new OrderSearch());
         List<OrderDto> collect = orders.stream()
@@ -68,7 +68,7 @@ public class OrderSimpleApiController {
      * 기본적으로 모든 xToOne관계는 Lazy로 설정하고, 필요한 경우에만 fetch조인으로 객체를 묶어서
      * 조회할 것.
      */
-    @GetMapping("/api/v3/orders")
+    @GetMapping("/api/v3/simple-orders")
     public OrderDtoWrapper<List<OrderDto>> orderV3() {
         List<Order> orders = orderRepository.findAllWithMemberDelivery();
 
@@ -86,7 +86,7 @@ public class OrderSimpleApiController {
      *
      * but, 재사용성이 떨어짐
      */
-    @GetMapping("/api/v4/orders")
+    @GetMapping("/api/v4/simple-orders")
     public List<OrderSimpleQueryDto> orderV4() {
         return orderSimpleQueryRepository.findOrderDtos();
     }
