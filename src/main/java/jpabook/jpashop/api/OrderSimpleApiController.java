@@ -5,13 +5,13 @@ import jpabook.jpashop.domain.Order;
 import jpabook.jpashop.domain.OrderSearch;
 import jpabook.jpashop.domain.OrderStatus;
 import jpabook.jpashop.repository.OrderRepository;
+import jpabook.jpashop.repository.OrderSimpleQueryDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +43,11 @@ public class OrderSimpleApiController {
         return orders;
     }
 
+    /**
+     * v2 DTO로 반환
+     * N+1 (1+N) 문제 발생
+     * 2개 Order를 조회시 멤버 N번, 배송 N번 총 5번의 쿼리가 나가게 된다.
+     */
     @GetMapping("/api/v2/orders")
     public OrderDtoWrapper<List<OrderDto>> ordersV2() {
         List<Order> orders = orderRepository.findAllByString(new OrderSearch());
@@ -50,6 +55,38 @@ public class OrderSimpleApiController {
                 .map(m -> new OrderDto(m))
                 .collect(Collectors.toList());
         return new OrderDtoWrapper<List<OrderDto>>(collect.size(), collect);
+    }
+
+    /**
+     * v3 fetch join
+     * order와 연관관계를 맺는 테이블을 모두 한방 쿼리로 조회
+     * Lazy 의미 없음. 모두 조회 (N+1 문제 해결)
+     * 현재 예제에서는 Order의 Member와 Delivery를 패치조인 하여 세 테이블의 모든 필드를 조인하여 한번에 조회
+     *
+     * 기본적으로 모든 xToOne관계는 Lazy로 설정하고, 필요한 경우에만 fetch조인으로 객체를 묶어서
+     * 조회할 것.
+     */
+    @GetMapping("/api/v3/orders")
+    public OrderDtoWrapper<List<OrderDto>> orderV3() {
+        List<Order> orders = orderRepository.findAllWithMemberDelivery();
+
+        return new OrderDtoWrapper<List<OrderDto>>
+                (orders.size(), orders.stream()
+                .map(m->new OrderDto(m))
+                .collect(Collectors.toList()));
+    }
+
+    /**
+     * v4 dto로 조회
+     * 패치조인과 동일하게 N+1문제는 해결됨
+     * 패치조인과 다른 점으로는 필요한 필드만을 dto로 구성하여 패치 조인에 비해 select절을 줄일 수 있음
+     * repository에서 new를 통해 쿼리 작성
+     *
+     * but, 재사용성이 떨어짐
+     */
+    @GetMapping("/api/v4/orders")
+    public List<OrderSimpleQueryDto> orderV4() {
+        return orderRepository.findOrderDtos();
     }
 
     @Data
@@ -66,10 +103,11 @@ public class OrderSimpleApiController {
             this.orderDate = o.getOrderDate();
             this.orderStatus = o.getStatus();
             this.address = o.getDelivery().getAddress(); // Lazy 초기화
+            // Lazy초기화 ?
+            // o.getMember()의 PK로 영속성 컨텍스트에 Member가 있는 지 찾은 후 없다면 쿼리르 날림.
         }
 
-        // Lazy초기화 ?
-        // o.getMember()의 PK로 영속성 컨텍스트에 Member가 있는 지 찾은 후 없다면 쿼리르 날림.
+
     }
 
     @AllArgsConstructor

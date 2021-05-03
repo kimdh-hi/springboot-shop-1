@@ -52,6 +52,28 @@ public class OrderRepository {
         TypedQuery<Order> query = em.createQuery(cq).setMaxResults(100);
         return query.getResultList();
     }
+
+    /**
+     * fetch 조인
+     * order를 조회하는 시점에 order의 member와 delivery의 LAZY설정을 무시하고 모두 가져옴
+     * join fetch o.member m
+     * join fetch o.delivery d
+     */
+    public List<Order> findAllWithMemberDelivery() {
+        return em.createQuery("select o from Order o " +
+                "join fetch o.member m " +
+                "join fetch o.delivery d", Order.class)
+                .getResultList();
+
+    }
+
+    public List<OrderSimpleQueryDto> findOrderDtos() {
+        return em.createQuery("select new jpabook.jpashop.repository.OrderSimpleQueryDto(o.id, m.name, o.orderDate, o.status, d.address) " +
+                "from Order o "+
+                "join o.member m "+
+                "join o.delivery d", OrderSimpleQueryDto.class)
+                .getResultList();
+    }
 }
 
     /**
