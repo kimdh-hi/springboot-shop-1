@@ -23,7 +23,7 @@ public class OrderApiController {
      * OrderItem 컬렉션 내 item의 name까지 모두 Lazy초기화 수행하여 출력
      */
     @GetMapping("/api/v1/orders")
-    public List<Order> orderv1() {
+    public List<Order> orderV1() {
         List<Order> all = orderRepository.findAllByString(new OrderSearch());
         for (Order order : all) { // Lazy 초기화
             order.getMember().getName();
@@ -41,12 +41,27 @@ public class OrderApiController {
      * 엔티티 내에 엔티티가 있는 경우 안에 있는 엔티티까지 DTO로 변환할 것.
      */
     @GetMapping("/api/v2/orders")
-    public DtoWrapper<List<OrderDto>> orderv2() {
+    public DtoWrapper<List<OrderDto>> orderV2() {
         List<Order> result = orderRepository.findAllByString(new OrderSearch());
         List<OrderDto> collect = result.stream()
                 .map(o -> new OrderDto(o))
                 .collect(Collectors.toList());
         return new DtoWrapper(collect,collect.size());
+    }
+
+    /**
+     * v3 패치 조인
+     * 컬렉션 조회(일대다 엔티티)시 패치 조인의 최적화 (distinct)
+     *
+     * (일대다)컬렉션 패치 조인시 페이징을 사용하지 말자.
+     */
+    @GetMapping("/api/v3/orders")
+    public List<OrderDto> orderV3() {
+        List<Order> result = orderRepository.findAllWithItem();
+        List<OrderDto> collect = result.stream()
+                .map(o -> new OrderDto(o))
+                .collect(Collectors.toList());
+        return collect;
     }
 
 

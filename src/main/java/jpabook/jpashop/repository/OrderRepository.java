@@ -67,6 +67,24 @@ public class OrderRepository {
 
     }
 
+    /**
+     * 일대다 관계 컬렉션 패치 조인
+     * 일 쪽의 데이터가 다 쪽의 데이터의 수만큼 늘어나게 됨 (뻥튀기)
+     * 아래 예에서 Order는 2개, OrderItem은 4개인데 그냥 패치 조인을 수행하면 Order가 4개로 늘어남
+     * distinct 키워드로 해결 가능
+     *
+     * RDBMS에서의 distinct와 비슷하지만 조금 다름 (RDBMS의 경우 로우가 완전히 같은 행의 중복을 제거함)
+     * JPA의 distinct는 id(=PK)값을 기준으로 중복을 제거해줌
+     */
+    public List<Order> findAllWithItem() {
+        return em.createQuery("select distinct o from Order o "+
+                    "join fetch o.member m "+
+                    "join fetch o.delivery d "+
+                    "join fetch o.orderItems oi "+
+                    "join fetch oi.item i", Order.class)
+                .getResultList();
+    }
+
 }
 
 
