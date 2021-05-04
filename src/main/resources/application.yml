@@ -12,6 +12,9 @@ spring:
       hibernate:
 #        show_sql: true
         format_sql: true
+        default_batch_fetch_size: 100 # Lazy로딩되는 엔티티를 in쿼리를 통해 한번에 가져옴 (in쿼리의 파라미터 수)
+                                      # 엔티티 단위로 적용시 @BatchSize(size=N)
+
 
 logging:
   level:

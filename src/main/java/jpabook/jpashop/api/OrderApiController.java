@@ -5,6 +5,7 @@ import jpabook.jpashop.repository.OrderRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -64,7 +65,26 @@ public class OrderApiController {
         return collect;
     }
 
-
+    /**
+     * v3.1 페이징 + 컬레션 엔티티 해결
+     *
+     * xToOne관계는 그냥 패치 조인 사용해도 문제 없음 --> 패치조인으로 row수가 증가되지 않기 대문에 페이징에 영향 없음
+     * xToMany관계는 패치 조인을 하지 않고 그냥 Lazy로딩을 수행 (프로시 초기화를 통해)
+     * hibernate.default_batch_fetch_size를 통해 컬렉션 엔티티 Lazy로딩을 최적화 (in쿼리를 통해 한번에 가져옴)
+     *
+     * 쿼리의 양이 늘어난다고 반드시 성능이 나빠지는 것은 아님
+     * 쿼리의 양은 늘어나지만 보다 정규화된 데이터를 만들어 양을 줄일 수 있음
+     */
+    @GetMapping("/api/v3.1/orders")
+    public List<OrderDto> orderV3_page(
+            @RequestParam(value="offset", defaultValue = "1") int offset,
+            @RequestParam(value="limit", defaultValue = "100") int limit) {
+        List<Order> result = orderRepository.findAllWithMemberDelivery(offset, limit);
+        List<OrderDto> collect = result.stream()
+                .map(o -> new OrderDto(o))
+                .collect(Collectors.toList());
+        return collect;
+    }
 
     @Getter
     static class OrderDto{
