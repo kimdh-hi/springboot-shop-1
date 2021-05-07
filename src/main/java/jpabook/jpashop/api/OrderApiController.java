@@ -2,6 +2,7 @@ package jpabook.jpashop.api;
 
 import jpabook.jpashop.domain.*;
 import jpabook.jpashop.repository.OrderRepository;
+import jpabook.jpashop.repository.order.query.OrderFlatDto;
 import jpabook.jpashop.repository.order.query.OrderItemQueryDto;
 import jpabook.jpashop.repository.order.query.OrderQueryDto;
 import jpabook.jpashop.repository.order.query.OrderQueryRepository;
@@ -14,6 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static org.yaml.snakeyaml.nodes.NodeId.mapping;
 
 @RestController
 @RequiredArgsConstructor
@@ -50,7 +55,7 @@ public class OrderApiController {
         List<Order> result = orderRepository.findAllByString(new OrderSearch());
         List<OrderDto> collect = result.stream()
                 .map(o -> new OrderDto(o))
-                .collect(Collectors.toList());
+                .collect(toList());
         return new DtoWrapper(collect,collect.size());
     }
 
@@ -65,7 +70,7 @@ public class OrderApiController {
         List<Order> result = orderRepository.findAllWithItem();
         List<OrderDto> collect = result.stream()
                 .map(o -> new OrderDto(o))
-                .collect(Collectors.toList());
+                .collect(toList());
         return collect;
     }
 
@@ -73,7 +78,7 @@ public class OrderApiController {
      * v3.1 페이징 + 컬레션 엔티티 해결
      *
      * xToOne관계는 그냥 패치 조인 사용해도 문제 없음 --> 패치조인으로 row수가 증가되지 않기 대문에 페이징에 영향 없음
-     * xToMany관계는 패치 조인을 하지 않고 그냥 Lazy로딩을 수행 (프로시 초기화를 통해)
+     * xToMany관계(컬렉션)는 패치 조인을 하지 않고 그냥 Lazy로딩을 수행 (프로시 초기화를 통해)
      * hibernate.default_batch_fetch_size를 통해 컬렉션 엔티티 Lazy로딩을 최적화 (in쿼리를 통해 한번에 가져옴)
      *
      * 쿼리의 양이 늘어난다고 반드시 성능이 나빠지는 것은 아님
@@ -86,7 +91,7 @@ public class OrderApiController {
         List<Order> result = orderRepository.findAllWithMemberDelivery(offset, limit);
         List<OrderDto> collect = result.stream()
                 .map(o -> new OrderDto(o))
-                .collect(Collectors.toList());
+                .collect(toList());
         return collect;
     }
 
@@ -108,7 +113,25 @@ public class OrderApiController {
     }
 
 
-        @Getter
+    /**
+     * v6 JPA에서 DTO 직접 조회 (플랫 데이터 최적화)
+     * ToOne, ToMany 모두 한 개 DTO를 사용하여 조회
+     * 쿼리가 한 번만 수행되는 장점, but 컬렉션 join시 row가 증가(중복), 중복이 발생하기 때문에 Order기준 페이징 또한 불가
+     */
+    @GetMapping("/api/v6/orders")
+    public List<OrderFlatDto> orderV6() {
+        return orderQueryRepository.findAllByDto_Flat();
+
+//        return flats.stream()
+//                .collect(groupingBy(o -> new OrderQueryDto(o.getOrderId(), o.getName(), o.getOrderDate(), o.getOrderStatus(), o.getAddress()),
+//                        mapping(o -> new OrderItemQueryDto(o.getOrderId(), o.getItemName(), o.getOrderPrice(), o.getCount()), toList())
+//                )).entrySet().stream()
+//                .map(e -> new OrderQueryDto(e.getKey().getOrderId(), e.getKey().getName(), e.getKey().getOrderDate(), e.getKey().getOrderStatus(), e.getKey().getAddress(), e.getValue()))
+//                .collect(toList());
+    }
+
+
+    @Getter
     static class OrderDto{
 
         private Long orderId;
@@ -128,7 +151,7 @@ public class OrderApiController {
             address = o.getDelivery().getAddress();
             orderItem = o.getOrderItems().stream()
                     .map(oi -> new OrderItemDto(oi))
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
     }
 

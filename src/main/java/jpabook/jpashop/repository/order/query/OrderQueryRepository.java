@@ -19,8 +19,8 @@ public class OrderQueryRepository {
     private final EntityManager em;
 
     /*
-        (1) 컬렉션 부분을 제외하고는 단순하게 DTO로 직접 조회
-        (2) 컬렉션 부분은 (1)의 결과에 루프를 돌며 직접 채워줌
+        (1). 컬렉션 부분을 제외하고는 단순하게 DTO로 직접 조회
+        (2). 컬렉션 부분은 (1)의 결과에 루프를 돌며 직접 채워줌
 
         N+1문제가 발생함
         ToOne인 것은 모두 join하여 가져옴 (ToOne은 조인해도 로우가 증가되지 않기 때문에 상관 X)
@@ -39,7 +39,7 @@ public class OrderQueryRepository {
     /*
         ToOne관계를 먼저 조회회하여 얻은 결과에서 식별자를 리스트화하여 ToMany관계 조회시 in절의 파라미터로 사용
             => 2번의 쿼리 (ToOne 한 번, ToMany 한 번)
-        후에 Map을 통해 값을 매칭해줌으로 성능향상
+        후에 Map을 통해 값을 매칭해줌으로 성능향상 (메모리 상에서 매칭)
     */
     public List<OrderQueryDto> findAllByDto_Optimization() {
 
@@ -69,6 +69,19 @@ public class OrderQueryRepository {
         return result;
     }
 
+    public List<OrderFlatDto> findAllByDto_Flat() {
+
+        return em.createQuery(
+                "select new jpabook.jpashop.repository.order.query.OrderFlatDto(o.id, m.name, o.orderDate, o.status, d.address, i.name, oi.orderPrice, oi.count) " +
+                        " from Order o" +
+                        " join o.member m" +
+                        " join o.delivery d" +
+                        " join o.orderItems oi" +
+                        " join oi.item i", OrderFlatDto.class)
+                .getResultList();
+    }
+
+    // 컬렉션이 아닌 엔티티 조회 ToOne관계
     private List<OrderQueryDto> findOrders() {
         return em.createQuery(
                 "select new jpabook.jpashop.repository.order.query.OrderQueryDto(o.id, m.name, o.orderDate, o.status, d.address) " +
@@ -77,6 +90,7 @@ public class OrderQueryRepository {
                         "join o.delivery d", OrderQueryDto.class).getResultList();
     }
 
+    // 컬렉션 엔티티 조회 ToMany관계
     private List<OrderItemQueryDto> findOrderItems(Long orderId) {
         return em.createQuery(
                 "select new jpabook.jpashop.repository.order.query.OrderItemQueryDto(oi.order.id, i.name, oi.orderPrice, oi.count)" +
@@ -86,4 +100,6 @@ public class OrderQueryRepository {
                 .setParameter("orderId", orderId)
                 .getResultList();
     }
+
+
 }

@@ -2,8 +2,10 @@ package jpabook.jpashop.repository.order.query;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.Getter;
 
 @Data
+@Getter
 public class OrderItemQueryDto {
 
     @JsonIgnore
