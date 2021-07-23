@@ -13,8 +13,7 @@ import javax.persistence.*;
 @Entity
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class
-OrderItem extends BaseEntity{
+public class OrderItem extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
@@ -26,6 +25,7 @@ OrderItem extends BaseEntity{
     private Order order;
 
     private int orderPrice;
+
 
     private int count;
 

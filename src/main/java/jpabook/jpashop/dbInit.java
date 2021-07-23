@@ -19,7 +19,7 @@ import javax.persistence.EntityManager;
  *      SPRING1 BOOK
  *      SPRING2 BOOK
  */
-@Component
+//@Component
 @RequiredArgsConstructor
 public class dbInit {
 

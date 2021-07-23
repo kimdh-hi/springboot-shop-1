@@ -25,18 +25,9 @@ public class ItemController {
     }
 
     @PostMapping("/items/new")
-    public String create(BookForm form, @RequestParam MultipartFile image) throws Exception{
+    public String create(BookForm form) {
         Book book = new Book();
         book.setName(form.getName());
-
-        byte[] data = image.getBytes();
-        Byte[] bytes = new Byte[image.getBytes().length];
-        int i = 0;
-        for (byte b : image.getBytes()) {
-            bytes[i++] = b;
-        }
-
-        book.setImage(bytes);
 
         book.setStockQuantity(form.getStockQuantity());
         book.setPrice(form.getPrice());
@@ -51,9 +42,6 @@ public class ItemController {
     @GetMapping("items")
     public String list(Model model) {
         List<Item> items = itemService.findItems();
-        for (Item item : items) {
-            Byte[] image = item.getImage();
-        }
         model.addAttribute("items", items);
 
         return "items/itemList";

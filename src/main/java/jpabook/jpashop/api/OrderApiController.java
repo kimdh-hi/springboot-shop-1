@@ -3,7 +3,6 @@ package jpabook.jpashop.api;
 import jpabook.jpashop.domain.*;
 import jpabook.jpashop.repository.OrderRepository;
 import jpabook.jpashop.repository.order.query.OrderFlatDto;
-import jpabook.jpashop.repository.order.query.OrderItemQueryDto;
 import jpabook.jpashop.repository.order.query.OrderQueryDto;
 import jpabook.jpashop.repository.order.query.OrderQueryRepository;
 import lombok.Getter;
@@ -14,11 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.yaml.snakeyaml.nodes.NodeId.mapping;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,15 +30,15 @@ public class OrderApiController {
      */
     @GetMapping("/api/v1/orders")
     public List<Order> orderV1() {
-        List<Order> all = orderRepository.findAllByString(new OrderSearch());
-        for (Order order : all) { // Lazy 초기화
+        List<Order> result = orderRepository.findAllByString(new OrderSearch());
+        for (Order order : result) { // Lazy 초기화
             order.getMember().getName();
             order.getDelivery().getAddress();
 
             List<OrderItem> orderItems = order.getOrderItems();
             orderItems.stream().forEach(oi->oi.getItem().getName()); // 컬렉션 Lazy초기화
         }
-        return all;
+        return result;
     }
 
     /**
@@ -133,14 +129,11 @@ public class OrderApiController {
 
     @Getter
     static class OrderDto{
-
         private Long orderId;
         private String name;
         private LocalDateTime orderDate;
         private OrderStatus orderStatus;
         private Address address;
-        // OrderItem 엔티티에도 종속되지 않도록 DTO를 사용
-        // 엔티티의 변경이 API에 영향을 끼치지 않고, 사용자에게 공개하고 싶은 데이터만 공개 가능 등 여러 이점
         private List<OrderItemDto> orderItem;
 
         public OrderDto(Order o) {
